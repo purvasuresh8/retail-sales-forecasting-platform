@@ -184,3 +184,80 @@ st.plotly_chart(
     fig3,
     use_container_width=True
 )
+
+
+# Revenue by Day of the Week
+
+st.divider()
+st.subheader("📆 Revenue by Day of the Week")
+
+# Map weekday numbers to names
+weekday_names = {
+    0: "Monday",
+    1: "Tuesday",
+    2: "Wednesday",
+    3: "Thursday",
+    4: "Friday",
+    5: "Saturday",
+    6: "Sunday"
+}
+
+weekday_sales = df.groupby("day_of_week").agg(
+    Average_Revenue=("TransactionAmount", "mean"),
+    Total_Revenue=("TransactionAmount", "sum"),
+    Number_of_Days=("TransactionAmount", "count")
+).reset_index()
+
+weekday_sales["Day"] = weekday_sales["day_of_week"].map(weekday_names)
+
+# Ensure days appear in calendar order
+weekday_sales = weekday_sales.sort_values("day_of_week")
+
+# Find the weekday with the highest average revenue
+best_weekday = weekday_sales.loc[
+    weekday_sales["Average_Revenue"].idxmax()
+]
+
+st.metric(
+    "Highest Average Revenue Day",
+    best_weekday["Day"],
+    f"${best_weekday['Average_Revenue']:,.0f} average revenue"
+)
+
+# Average revenue chart
+fig4 = px.bar(
+    weekday_sales,
+    x="Day",
+    y="Average_Revenue",
+    title="Average Daily Revenue by Weekday",
+    labels={
+        "Day": "Day of Week",
+        "Average_Revenue": "Average Revenue ($)"
+    }
+)
+
+st.plotly_chart(
+    fig4,
+    use_container_width=True
+)
+
+# Detailed weekday breakdown
+st.subheader("Weekday Revenue Breakdown")
+
+weekday_display = weekday_sales[
+    ["Day", "Average_Revenue", "Total_Revenue", "Number_of_Days"]
+].rename(columns={
+    "Average_Revenue": "Average Daily Revenue ($)",
+    "Total_Revenue": "Total Revenue ($)",
+    "Number_of_Days": "Days Recorded"
+})
+
+st.dataframe(
+    weekday_display.style.format({
+        "Average Daily Revenue ($)": "${:,.0f}",
+        "Total Revenue ($)": "${:,.0f}",
+        "Days Recorded": "{:,.0f}"
+    }),
+    use_container_width=True,
+    hide_index=True
+)
