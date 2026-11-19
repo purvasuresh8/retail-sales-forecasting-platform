@@ -139,3 +139,48 @@ st.dataframe(
     use_container_width=True,
     hide_index=True
 )
+
+# Average Daily Revenue by Month
+
+st.divider()
+st.subheader("📅 Average Daily Revenue by Month")
+
+avg_daily = monthly[["TransactionDate", "TransactionAmount"]].copy()
+
+# Get the number of days in each month
+avg_daily["Days in Month"] = (
+    avg_daily["TransactionDate"].dt.days_in_month
+)
+
+# Calculate average daily revenue
+avg_daily["Average Daily Revenue"] = (
+    avg_daily["TransactionAmount"] / avg_daily["Days in Month"]
+)
+
+# Identify the month with the highest average daily revenue
+best_daily_month = avg_daily.loc[
+    avg_daily["Average Daily Revenue"].idxmax()
+]
+
+st.metric(
+    "Highest Average Daily Revenue",
+    f"${best_daily_month['Average Daily Revenue']:,.0f}/day",
+    best_daily_month["TransactionDate"].strftime("%B %Y")
+)
+
+# Create chart
+fig3 = px.bar(
+    avg_daily,
+    x="TransactionDate",
+    y="Average Daily Revenue",
+    title="Average Daily Revenue per Month",
+    labels={
+        "TransactionDate": "Month",
+        "Average Daily Revenue": "Average Daily Revenue ($)"
+    }
+)
+
+st.plotly_chart(
+    fig3,
+    use_container_width=True
+)
